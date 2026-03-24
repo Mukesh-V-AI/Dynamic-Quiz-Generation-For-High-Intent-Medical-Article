@@ -20,8 +20,14 @@ async def process_article(req: ArticleRequest):
     # 1. Extract content
     content, title = extract_article_content(req.url, req.text)
     
+    if content.startswith("Error"):
+        raise HTTPException(status_code=400, detail=f"Could not extract article: {content}")
+        
     # 2. Extract facts and generate questions using OpenRouter
     facts, questions = await generate_facts_and_questions(content)
+    
+    if not questions:
+        raise HTTPException(status_code=500, detail="The AI failed to generate any valid questions from this article. Try a different article or paste the raw text.")
     
     article_id = str(uuid.uuid4())
     articles_db[article_id] = {"title": title, "content": content, "facts": facts}

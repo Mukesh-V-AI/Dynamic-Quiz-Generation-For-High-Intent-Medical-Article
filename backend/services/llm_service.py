@@ -5,7 +5,7 @@ from openai import AsyncOpenAI
 from models.schemas import Question, QuestionOption
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "dummy_key")
 
@@ -16,7 +16,7 @@ client = AsyncOpenAI(
 
 async def generate_facts_and_questions(text: str) -> tuple[dict, list[Question]]:
     # 1. Fact Extraction prompt
-    system_prompt = \"\"\"You are an expert medical quiz creator. Based ONLY on the provided article text, extract medical facts AND generate 10 multiple-choice questions.
+    system_prompt = """You are an expert medical quiz creator. Based ONLY on the provided article text, extract medical facts AND generate 10 multiple-choice questions.
 
 Output must be ONLY valid JSON matching exactly this structure:
 {
@@ -39,12 +39,13 @@ Output must be ONLY valid JSON matching exactly this structure:
   ]
 }
 Make sure you generate questions with varying difficulties ('easy', 'medium', 'hard') and different topic_tags ('symptoms', 'causes', 'treatments', 'precautions', 'definitions').
-\"\"\"
+"""
 
     try:
         response = await client.chat.completions.create(
-            model="google/gemini-2.5-flash", # Using the latest fast gemini
-            response_format={"type": "json_object"},
+            model="minimax/minimax-01", # Set to MiniMax per user request
+            # response_format={"type": "json_object"}, # Removed for compatibility
+            max_tokens=4000, # Explicitly limit tokens to avoid 402 "affordability" errors
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Article Text:\n{text[:15000]}"} # limit text size
@@ -52,7 +53,32 @@ Make sure you generate questions with varying difficulties ('easy', 'medium', 'h
         )
         
         content = response.choices[0].message.content
-        data = json.loads(content)
+        
+        # Clean markdown code block if present
+        clean_content = content.strip()
+        if clean_content.startswith("```json"):
+            clean_content = clean_content[7:]
+        elif clean_content.startswith("```"):
+            clean_content = clean_content[3:]
+        if clean_content.endswith("```"):
+            clean_content = clean_content[:-3]
+            
+        try:
+            data = json.loads(clean_content.strip())
+        except json.JSONDecodeError as je:
+            print(f"JSON Parsing Error: {je}")
+            print(f"Attempting to manually extract JSON from content...")
+            # Fallback: find first { and last }
+            start = clean_content.find('{')
+            end = clean_content.rfind('}')
+            if start != -1 and end != -1:
+                try:
+                    data = json.loads(clean_content[start:end+1])
+                except:
+                    print("Fallback JSON parsing failed.")
+                    return {}, []
+            else:
+                return {}, []
         
         extracted_facts = data.get("facts", {})
         raw_questions = data.get("questions", [])

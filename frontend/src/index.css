@@ -1,7 +1,7 @@
 :root {
   /* iCliniq Theme Colors */
-  --primary-color: #17345b; /* Deep clinical blue */
-  --primary-hover: #112747;
+  --primary-color: rgb(20, 65, 163); /* Exact iCliniq blue */
+  --primary-hover: rgb(15, 55, 140);
   --secondary-color: #eab308; /* Yellow for free consultation buttons */
   --secondary-hover: #ca8a04;
   --bg-color: #f1f5f9; /* Light gray background */

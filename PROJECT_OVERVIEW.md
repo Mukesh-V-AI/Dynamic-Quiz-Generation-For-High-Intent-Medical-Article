@@ -33,26 +33,26 @@ This document summarizes the work completed, the technologies used, and the road
 
 ---
 
-## 3. Roadmap for Optimal Low Latency Quiz Generation
+## 3. Roadmap for Optimal Low Latency (Reducing Generation Time)
 
-To take the "Low Latency" to a production level, the following optimizations are recommended:
+To significantly reduce the current ~10-15s generation time, the following technical strategies are recommended:
 
-### A. LLM Response Streaming
-- **Action**: Switch from a single blocking request to **Server-Sent Events (SSE)**.
-- **Impact**: Questions appearing one-by-one as the AI thinks, reducing perceived "Waiting" time from ~10s to <1s.
+### A. Server-Sent Events (SSE) Streaming
+- **Implementation**: Modify the FastAPI backend to use `StreamingResponse` and the OpenAI `stream=True` parameter.
+- **Impact**: Instead of waiting 10 seconds for a full JSON block, questions will appear one-by-one as the AI thinks. The user sees the first question in **< 2 seconds**.
 
-### B. Intelligent Caching (Redis)
-- **Action**: Implement Redis to cache generated quizzes for popular URLs.
-- **Impact**: Instant (millisecond) delivery of quizzes for previously seen articles, bypassing LLM generation entirely.
+### B. Intelligent Response Caching (Redis)
+- **Implementation**: Store previously generated quizzes for common medical URLs in a Redis cache.
+- **Impact**: If another user requests the same article, the response is **Instant (0ms generation time)**.
 
-### C. Persistent Database (MongoDB / Atlas)
-- **Action**: Migrate In-Memory sessions to **MongoDB**.
-- **Impact**: Persistent user history, long-term learning analytics, and the ability to scale to thousands of simultaneous users.
+### C. Parallelization of Sub-Tasks
+- **Implementation**: Split the single large prompt into two parallel calls: one for Fact Extraction and one for Question Generation.
+- **Impact**: Processing both at once can shave off 30-40% of the total execution time.
 
-### D. Asynchronous Background Tasks (Celery)
-- **Action**: Move article scraping and fact extraction to a background worker.
-- **Impact**: The UI remains responsive immediately while the backend works in the background.
+### D. Model Selection (Gemini 2.0 Flash)
+- **Implementation**: Switch from `minimax-01` to `google/gemini-2.0-flash`.
+- **Impact**: Gemini 2.0 Flash is specifically optimized for ultra-low latency and higher throughput, typically being **2x-3x faster** than minimax for large JSON outputs.
 
-### E. Global CDN & Edge Functions
-- **Action**: Deploy the frontend to Vercel/Netlify and the backend to an Edge-compatible server (like Fly.io).
-- **Impact**: Reduces network round-trip time for users globally.
+### E. Prompt Compression & Concise System Prompts
+- **Implementation**: Minify the "System Prompt" and use few-shot examples to guide the AI to skip polite chatter and output bare JSON immediately.
+- **Impact**: Fewer "Reasoning" tokens produced by the AI results in faster final delivery.

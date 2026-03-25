@@ -1,21 +1,16 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ArticleIntake from './pages/ArticleIntake';
 import QuizInterface from './pages/QuizInterface';
 import Results from './pages/Results';
+import icliniqLogo from './assets/icliniq-logo.png';
 
 function App() {
   return (
     <Router>
       <div className="navbar">
-        <div className="navbar-brand">
-          <span style={{color: 'var(--secondary-color)'}}>iCliniq</span> QuizEngine
-        </div>
-        <div className="nav-links">
-          <span>Medical Articles</span>
-          <span>Medical Q&A</span>
-          <span>Consult a Physician</span>
-        </div>
-        <button className="consult-btn">Free Consultation</button>
+        <Link to="/" className="navbar-brand">
+          <img src={icliniqLogo} alt="iCliniq Logo" style={{ height: '40px' }} />
+        </Link>
       </div>
 
       <div className="app-container">

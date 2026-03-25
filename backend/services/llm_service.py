@@ -15,8 +15,13 @@ client = AsyncOpenAI(
 )
 
 async def generate_facts_and_questions(text: str) -> tuple[dict, list[Question]]:
-    # 1. Fact Extraction prompt
-    system_prompt = """You are an expert medical quiz creator. Based ONLY on the provided article text, extract medical facts AND generate 10 multiple-choice questions.
+    # 1. Fact Extraction and Question Generation prompt
+    system_prompt = """You are an expert medical quiz creator. Based ONLY on the provided article text, extract medical facts AND generate 10 questions.
+
+To keep the quiz engaging, use a variety of question formats:
+1. **Multiple Choice**: Standard 4-option question.
+2. **True/False**: 2-option question (True or False).
+3. **Clinical Scenarios**: Create a brief "case study" scenario (e.g., "A patient presents with...") based on the article's facts, followed by a question.
 
 Output must be ONLY valid JSON matching exactly this structure:
 {
@@ -29,8 +34,8 @@ Output must be ONLY valid JSON matching exactly this structure:
   },
   "questions": [
     {
-      "text": "Question text here?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "text": "Question text here (can include a clinical scenario).",
+      "options": ["Option A", "Option B", ...],
       "correct_option_index": 0,
       "explanation": "Explanation for the correct answer.",
       "difficulty": "easy",
@@ -38,7 +43,7 @@ Output must be ONLY valid JSON matching exactly this structure:
     }
   ]
 }
-Make sure you generate questions with varying difficulties ('easy', 'medium', 'hard') and different topic_tags ('symptoms', 'causes', 'treatments', 'precautions', 'definitions').
+Make sure you generate questions with varying difficulties ('easy', 'medium', 'hard') and different topic_tags ('symptoms', 'causes', 'treatments', 'precautions', 'definitions'). Ensure a mix of T/F, Scenarios, and Standard MCQs.
 """
 
     try:

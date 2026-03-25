@@ -53,11 +53,40 @@ npm run dev
 ```
 > The application will be available at `http://localhost:5173`
 
+## Project Structure
+
+```text
+├── backend/                # FastAPI Backend
+│   ├── api/                # API route definitions (processing articles, tracking progress)
+│   ├── models/             # Pydantic models for data validation and API schemas
+│   ├── services/           # Core business logic
+│   │   ├── article_service.py # URL scraping and text cleaning (BeautifulSoup)
+│   │   ├── llm_service.py     # AI integration (Minimax-01 via OpenRouter)
+│   │   └── quiz_engine.py    # Adaptive difficulty & session management
+│   ├── main.py             # Application entry point
+│   └── requirements.txt    # Python dependencies
+├── frontend/               # React + Vite Frontend
+│   ├── src/
+│   │   ├── assets/         # Branding assets (iCliniq Logo)
+│   │   ├── pages/          # Main application views
+│   │   │   ├── ArticleIntake.jsx  # Input for URLs or raw article text
+│   │   │   ├── QuizInterface.jsx  # Adaptive quiz interactive component
+│   │   │   └── Results.jsx        # Performance analytics and analytics
+│   │   ├── App.jsx         # Routing, navigation, and core layout
+│   │   └── index.css       # Global iCliniq theme (Vanilla CSS)
+│   └── package.json        # Node.js dependencies
+├── PROJECT_OVERVIEW.md     # In-depth technical guide and roadmap
+└── README.md               # Quick-start guide and structure
+```
+
 ## Usage
 1. Open the frontend URL in your browser.
 2. Paste a link to a valid medical article (e.g. Mayo Clinic, WebMD) or paste raw article text.
 3. Click **Generate Adaptive Quiz**. 
 4. Begin the test! The engine will keep track of your performance.
+
+## Roadmap & Latency Optimization
+For details on how to reduce generation time and implement a persistent database, see [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md).
 
 ## License
 MIT License
